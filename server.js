@@ -16,7 +16,7 @@ const db = mysql.createConnection(
     password: 'Philosopher91',
     database: 'movies_db'
   },
-  console.log(`Connected to the movies_db database.`)
+  console.log(`Successfully connected to the movies_db database!`)
 );
 
 //new movie
@@ -69,6 +69,41 @@ app.delete('/api/movie/:id', (req, res) => {
       });
     } }); });
 
+
+    //JOIN
+app.get('/api/movie-reviews', (req, res) => {
+  const sql = `SELECT movies.movie_name AS movie, reviews.review FROM reviews LEFT JOIN movies ON reviews.movie_id = movies.id ORDER BY movies.movie_name;`;
+  db.query(sql, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'Movies successfully joined with their reviews!',
+      data: rows
+    }); }); });
+
+
+
+//update review
+app.put('/api/review/:id', (req, res) => {
+  const sql = `UPDATE reviews SET review = ? WHERE id = ?`;
+  const params = [req.body.review, req.params.id];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+    } else if (!result.affectedRows) {
+      res.json({
+        message: 'Oh, no! This action could not be completed. Movie not found :('
+      });
+    } else {
+      res.json({
+        message: 'Movie review updated successfully!',
+        data: req.body,
+        changes: result.affectedRows
+      });
+    } }); });
 
 app.use((req, res) => {
   res.status(404).end();
